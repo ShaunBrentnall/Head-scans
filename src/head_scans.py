@@ -4,11 +4,6 @@
 import pandas as pd
 import numpy as np
 from ast import literal_eval
-import matplotlib
-import matplotlib.pyplot as plt
-from matplotlib.pyplot import figure
-import cv2
-import math
 import os
 
 from functions import scan_check
