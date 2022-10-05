@@ -7,24 +7,12 @@ from ast import literal_eval
 import matplotlib
 import matplotlib.pyplot as plt
 from matplotlib.pyplot import figure
-from itertools import groupby
 import cv2
 import math
+import os
 
-def scan_check(angles, angle_threshold, frame_threshold):
-    
-    scan_left = [1 if angles[i] >= angle_threshold else 0 for i in range(len(angles))]
-    scan_right = [1 if -angles[i] >= angle_threshold else 0 for i in range(len(angles))]
-    
-    scan_left = [np.sum(list(group)) for key, group in groupby(scan_left)]
-    scan_right = [np.sum(list(group)) for key, group in groupby(scan_right)]
-    
-    scan_left = list(filter(lambda x: x >= frame_threshold, scan_left))
-    scan_right = list(filter(lambda x: x >= frame_threshold, scan_right))
-    
-    print("The total number of head scans above {}° was {}.\nLeft: {}\nRight: {}\nThe average time of a head scan was {:.2f} seconds.".format(angle_threshold, len(scan_left) + len(scan_right) , len(scan_left), len(scan_right), np.mean(scan_left + scan_right)/24))
-    
-    return #scan_left, scan_right
+from functions import scan_check
+import plotting
 
 #Setup
 #If raw_data returns nothing, print("Here's the link: ")
@@ -111,98 +99,9 @@ angles_eye_hip = [right_eye_hip[i] * 90 * np.arccos(np.dot(WE_H[i], WH_H[i]) / (
 scan_check(angles_eye_hip, 30, 4)
 scan_check(angles_eye_shoulders, 20, 4)
 
-#Plots
-figure(figsize=(20, 10), dpi=100)
-"""
-fig, ax = plt.subplots(2, 1, figsize = (8,10))
-
-ax[0, 0].plot(angles_eye_shoulders)
-
-ax[1, 0].plot(angles_eye_hip)
-
-fig.tight_layout()
-"""
-#fig = plt.figure()
-
-plt.subplot(2, 1, 1)
-plt.plot(angles_eye_shoulders)
-plt.title("Angle between shoulder and eye direction")
-plt.ylim(-90, 90)
-plt.xlabel("Frame")
-plt.ylabel("Head angle (°) \N{LEFTWARDS ARROW} right | left \N{RIGHTWARDS ARROW}")
-plt.axhline(y=20, color='r', linestyle ='--')
-plt.axhline(y=-20, color='r', linestyle ='--')
-
-
-plt.subplot(2, 1, 2)
-plt.plot(angles_eye_hip)
-plt.title("Angle between hip and eye direction")
-plt.ylim(-150, 150)
-plt.xlabel("Frame")
-plt.ylabel("Head angle (°) \N{LEFTWARDS ARROW} right | left \N{RIGHTWARDS ARROW}")
-plt.axhline(y=30, color='r', linestyle ='--')
-plt.axhline(y=-30, color='r', linestyle ='--')
-
-plt.show()
+plotting.time_series_angle(angles_eye_shoulders, angles_eye_hip)
 
 #Video
 #----------------------------------------------
-"""
-vid_capture = cv2.VideoCapture("C:\\Coding\\Projects\\head_scan\\head_scan_lampard.mp4")
-
-if vid_capture.isOpened() == False:
-    print("Error opening video")
-
-else:
-    fps = vid_capture.get(5)
-    print("Frames per second: {}".format(fps))
-
-    frame_count = vid_capture.get(7)
-    print("Frame count: {}".format(frame_count))
-
-    width = cv2.CAP_PROP_FRAME_WIDTH
-    print("Frame width: {}".format(width))
-
-wait = math.floor(1/fps * 75)
-
-
-fig = plt.figure()
-
-
-while vid_capture.isOpened():
-    ret, frame = vid_capture.read()
-
-    frame_number = int(vid_capture.get(cv2.CAP_PROP_POS_FRAMES))
-  
-    if ret == True:
-        #figure(figsize=(20, 2), dpi=100)
-        plt.scatter(angles_eye_hip[frame_number + 2],0)
-        plt.ylim(-1,1)
-        plt.xlim(150,-150)
-        plt.xlabel("Head Angle (°): \N{LEFTWARDS ARROW} left | right \N{RIGHTWARDS ARROW}")
-        plt.title("Angle between head and hip")
-        fig.canvas.draw()
-        
-        graph = np.fromstring(fig.canvas.tostring_rgb(), dtype=np.uint8, sep='')
-        graph = graph.reshape(fig.canvas.get_width_height()[::-1] + (3,))
-
-
-        cv2.imshow("Frame", frame)
-        cv2.imshow("plot", graph)
-
-        #v_img = cv2.vconcat([frame, graph])
-        #cv2.imshow("Head scans", v_img)
-
-        key = cv2.waitKey(wait)
-
-        if key == 113:  #113 is ASCII code for q key
-            break
-        plt.cla()
-    else:
-        break
-#----------------------------------------------
-"""
-   
-
-
-
+video_recording_path = os.path.join('videos','head_scan_1.mp4')
+plotting.vid_angles(video_recording_path, angles_eye_hip)
